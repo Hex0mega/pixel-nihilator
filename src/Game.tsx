@@ -1,7 +1,8 @@
 
 export default class Game {
     private ctx: CanvasRenderingContext2D;
-    private color = "red";
+    //pixel info
+    private color = "black";
     private size = 10;
     private step = 2;
     private pixelX = 0;
@@ -10,13 +11,20 @@ export default class Game {
     private left = false;
     private up = false;
     private down = false;
+    private space = false;
+
+    //projectile info
+    private pColor = "red";
+    private pSpeed = 1;
+    private projectileX = 0;
+    private projectileY = 0;
+    private projectiles: Array<{ x: number, y: number, size: number, color: string }> = [];
 
     constructor(ctx: CanvasRenderingContext2D) {
         this.ctx = ctx;
         this.pixelX = this.ctx.canvas.width / 2;
         this.pixelY = this.ctx.canvas.height / 2;
-        console.log(this.pixelX);
-        console.log(this.pixelY);
+
         window.addEventListener("resize", () => this.resize());
         requestAnimationFrame(() => {
             this.draw();
@@ -27,7 +35,7 @@ export default class Game {
         this.resize();
     }
 
-    draw() {
+    private draw() {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         // console.log("drawing");
         this.ctx.fillStyle = "black";
@@ -40,6 +48,7 @@ export default class Game {
             this.ctx.canvas.height
         )
         this.drawPixel();
+
         requestAnimationFrame(() => {
             this.draw();
         })
@@ -56,7 +65,9 @@ export default class Game {
         if (this.left) {
             this.pixelX -= this.step;
         }
-
+        if (this.space) {
+            this.drawProjectiles();
+        }
     }
 
     resize() {
@@ -68,41 +79,68 @@ export default class Game {
         this.ctx.canvas.style.height = `${boundingBox.height}px`;
     }
 
+    addProjectile() {
+        this.projectiles.push({ x: this.pixelX, y: this.pixelY, size: this.size, color: this.color });
+    }
+
     reset() {
         this.pixelX = this.ctx.canvas.width / 2;
         this.pixelY = this.ctx.canvas.height / 2;
     }
 
-    drawPixel(): void {
+    resetProjectile() {
+        this.projectileX = this.pixelX;
+        this.projectileY = this.pixelY;
+    }
+
+    private drawPixel(): void {
         this.ctx.beginPath();
         this.ctx.fillStyle = this.color;
         this.ctx.fillRect(this.pixelX, this.pixelY, this.size, this.size);
         this.ctx.closePath();
     }
 
-    drawLevel(): void {
+    private drawProjectiles(): void {
+        this.projectiles.forEach((projectile, index) => {
+            this.ctx.fillStyle = this.pColor;
+            projectile.y -= this.pSpeed;
+            this.ctx.fillRect(projectile.x, projectile.y, this.size, this.size);
+            //remove projectile once it's off screen
+            if (projectile.y < 0) {
+                this.projectiles.splice(index, 1);
+            }
+        })
+
+    }
+
+    private drawLevel(): void {
         console.log("drawLevel");
     }
 
-    pixelkillCounter(): void {
+    private pixelkillCounter(): void {
         console.log("pixelKillCounter");
     }
 
-    keyDownHandler(event: KeyboardEvent) {
-        switch (event.key) {
-            case "w": //up
+    private keyDownHandler(event: KeyboardEvent) {
+        switch (event.code) {
+            case "Space":
+                this.space = true;
+                this.addProjectile();
+                this.drawProjectiles();
+                break;
+            case "KeyW": //up
                 this.up = true;
                 this.drawPixel();
                 break;
-            case "s": //down
+            case "KeyS": //down
                 this.down = true;
                 this.drawPixel();
                 break;
-            case "a": //left
+            case "KeyA": //left
                 this.left = true;
                 this.drawPixel();
                 break;
-            case "d": //right
+            case "KeyD": //right
                 this.right = true;
                 this.drawPixel();
                 break;
@@ -111,21 +149,26 @@ export default class Game {
         }
     }
 
-    keyUpHandler(event: KeyboardEvent) {
-        switch (event.key) {
-            case "w": //up
+    private keyUpHandler(event: KeyboardEvent) {
+        switch (event.code) {
+            case "Space":
+                this.space = true;
+                this.addProjectile();
+                this.drawProjectiles();
+                break;
+            case "KeyW": //up
                 this.up = false;
                 this.drawPixel();
                 break;
-            case "s": //down
+            case "KeyS": //down
                 this.down = false;
                 this.drawPixel();
                 break;
-            case "a"://left
+            case "KeyA"://left
                 this.left = false;
                 this.drawPixel();
                 break;
-            case "d": //right
+            case "KeyD": //right
                 this.right = false;
                 this.drawPixel();
                 break;
