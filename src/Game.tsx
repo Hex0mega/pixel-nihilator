@@ -1,6 +1,7 @@
 
 export default class Game {
     private ctx: CanvasRenderingContext2D;
+
     //pixel info
     private color = "black";
     private size = 10;
@@ -15,15 +16,19 @@ export default class Game {
 
     //projectile info
     private pColor = "red";
-    private pSpeed = 1;
-    private projectileX = 0;
-    private projectileY = 0;
+    private speed = 2;
     private projectiles: Array<{ x: number, y: number, size: number, color: string }> = [];
+
+    //pixels to destroy
+    private eColor = "cyan";
+    private enemies: Array<{ x: number, y: number, size: number, color: string }> = [];
+    private enemyCount = 100;
 
     constructor(ctx: CanvasRenderingContext2D) {
         this.ctx = ctx;
         this.pixelX = this.ctx.canvas.width / 2;
         this.pixelY = this.ctx.canvas.height / 2;
+        this.addEnemies();
 
         window.addEventListener("resize", () => this.resize());
         requestAnimationFrame(() => {
@@ -35,18 +40,14 @@ export default class Game {
         this.resize();
     }
 
-    private draw() {
+    draw() {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-        // console.log("drawing");
         this.ctx.fillStyle = "black";
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this.ctx.fillStyle = "white";
-        this.ctx.fillRect(
-            1,
-            1,
-            this.ctx.canvas.width,
-            this.ctx.canvas.height
-        )
+        this.ctx.fillRect(1, 1, this.ctx.canvas.width, this.ctx.canvas.height);
+
+        this.drawLevel();
         this.drawPixel();
 
         requestAnimationFrame(() => {
@@ -83,14 +84,15 @@ export default class Game {
         this.projectiles.push({ x: this.pixelX, y: this.pixelY, size: this.size, color: this.color });
     }
 
+    addEnemies() {
+        for (let i = 0; i < this.enemyCount; i++) {
+            this.enemies.push({ x: Math.random() * this.ctx.canvas.width, y: Math.random() * this.ctx.canvas.height, size: this.size, color: this.eColor });
+        }
+    }
+
     reset() {
         this.pixelX = this.ctx.canvas.width / 2;
         this.pixelY = this.ctx.canvas.height / 2;
-    }
-
-    resetProjectile() {
-        this.projectileX = this.pixelX;
-        this.projectileY = this.pixelY;
     }
 
     private drawPixel(): void {
@@ -103,18 +105,20 @@ export default class Game {
     private drawProjectiles(): void {
         this.projectiles.forEach((projectile, index) => {
             this.ctx.fillStyle = this.pColor;
-            projectile.y -= this.pSpeed;
+            projectile.y -= this.speed;
             this.ctx.fillRect(projectile.x, projectile.y, this.size, this.size);
             //remove projectile once it's off screen
             if (projectile.y < 0) {
                 this.projectiles.splice(index, 1);
             }
         })
-
     }
 
     private drawLevel(): void {
-        console.log("drawLevel");
+        this.enemies.forEach((enemy) => {
+            this.ctx.fillStyle = this.eColor;
+            this.ctx.fillRect(enemy.x, enemy.y, this.size, this.size);
+        })
     }
 
     private pixelkillCounter(): void {
@@ -122,6 +126,7 @@ export default class Game {
     }
 
     private keyDownHandler(event: KeyboardEvent) {
+        console.log(event.code);
         switch (event.code) {
             case "Space":
                 this.space = true;
@@ -153,7 +158,6 @@ export default class Game {
         switch (event.code) {
             case "Space":
                 this.space = true;
-                this.addProjectile();
                 this.drawProjectiles();
                 break;
             case "KeyW": //up

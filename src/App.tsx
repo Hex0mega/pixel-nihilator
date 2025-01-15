@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import './App.css'
-import Game from './game';
+import Game from './Game';
 
 const canvas = document.getElementById("pn-canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
